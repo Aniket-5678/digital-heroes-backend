@@ -1,10 +1,34 @@
+
 import Score from "../models/Score.js";
+import Subscription from "../models/Subscription.js";
+
+// ==========================================
+// CHECK ACTIVE SUBSCRIPTION
+// ==========================================
+const checkActiveSubscription = async (userId) => {
+  const subscription = await Subscription.findOne({
+    user: userId,
+    status: "active",
+  });
+
+  return !!subscription;
+};
 
 // ==========================================
 // ADD SCORE
 // ==========================================
 export const addScore = async (req, res) => {
   try {
+    // Check active subscription
+    const hasSubscription = await checkActiveSubscription(req.user._id);
+
+    if (!hasSubscription) {
+      return res.status(403).json({
+        success: false,
+        message: "Active subscription is required to add scores",
+      });
+    }
+
     const { score, date } = req.body;
 
     if (score === undefined || !date) {
@@ -87,6 +111,16 @@ export const addScore = async (req, res) => {
 // ==========================================
 export const getMyScores = async (req, res) => {
   try {
+    // Check active subscription
+    const hasSubscription = await checkActiveSubscription(req.user._id);
+
+    if (!hasSubscription) {
+      return res.status(403).json({
+        success: false,
+        message: "Active subscription is required to access scores",
+      });
+    }
+
     const scores = await Score.find({
       user: req.user._id,
     }).sort({ date: -1 });
@@ -109,6 +143,16 @@ export const getMyScores = async (req, res) => {
 // ==========================================
 export const updateScore = async (req, res) => {
   try {
+    // Check active subscription
+    const hasSubscription = await checkActiveSubscription(req.user._id);
+
+    if (!hasSubscription) {
+      return res.status(403).json({
+        success: false,
+        message: "Active subscription is required to update scores",
+      });
+    }
+
     const { id } = req.params;
     const { score, date } = req.body;
 
@@ -179,6 +223,16 @@ export const updateScore = async (req, res) => {
 // ==========================================
 export const deleteScore = async (req, res) => {
   try {
+    // Check active subscription
+    const hasSubscription = await checkActiveSubscription(req.user._id);
+
+    if (!hasSubscription) {
+      return res.status(403).json({
+        success: false,
+        message: "Active subscription is required to delete scores",
+      });
+    }
+
     const { id } = req.params;
 
     const score = await Score.findOneAndDelete({
